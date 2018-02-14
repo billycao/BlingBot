@@ -15,6 +15,7 @@ def get_match_list(matches):
             'date': match['DateCollected'],
             'score': match['Score'],
             'kills': match['Kills'],
+            'minutes': match['MinutesPlayed'],
         })
     return ret
 
@@ -30,7 +31,7 @@ def merge_match_lists(list_a, list_b):
            new_matches.append(match_b)
     return new_matches
                 
-def cheer_chris(num_kills):
+def cheer_chris(matches, num_kills, minutes):
     print("num kills: %d" % num_kills)
 
     # Move mouse and higlight text box
@@ -42,13 +43,24 @@ def cheer_chris(num_kills):
     if num_kills == 0:
         cheer = "BlingBot detected a 0 kill game. BibleThump"
     elif num_kills < 30:
-        cheer = " ".join(["RipCheer10"] * num_kills) + " BlingBot delivers. GG GivePLZ"
+        plural = ""
+        if matches > 1:
+            plural = "es"
+        cheer = " ".join(["RipCheer10"] * num_kills) + " BlingBot saw you play %d match%s with %d kills. GG GivePLZ" % (matches, plural, num_kills)
     else:
-        cheer = "BlingBot detected new games but thinks you got %d kills. Looks sus, no bits for you. :<" % num_kills
+        cheer = "BlingBot detected new games but thinks you got %d kills. Prob a bug, no bits for you. :<" % num_kills
     pyautogui.typewrite(cheer, interval=0.05)
+    pyautogui.press('enter')
+    time.sleep(5)
+
+    match_descriptor = "in that match."
+    if matches > 1:
+        match_descriptor = "in those matches."
+    pyautogui.typewrite('BlingBot thinks you survived for a total of %d minutes %s' % (minutes, match_descriptor), interval=0.05)
     pyautogui.press('enter')
 
 def init_message():
+    return
     # Move mouse and higlight text box
     ctypes.windll.user32.SetCursorPos(2300, -150)
     pyautogui.click()
@@ -85,9 +97,13 @@ def main():
                     pprint.pprint(new_matches)
 
                     total_kills = 0
+                    total_matches = 0
+                    total_minutes = 0
                     for match in new_matches:
                         total_kills += int(match['kills'])
-                    cheer_chris(total_kills)
+                        total_matches += 1
+                        total_minutes += int(match['minutes'])
+                    cheer_chris(total_matches, total_kills, total_minutes)
                 else:
                     print("No new matches detected.")
         time.sleep(5)
